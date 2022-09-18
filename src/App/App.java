@@ -23,10 +23,11 @@ public class App {
         System.out.println("Введите пароль:");
         // ftpData.setPassword(scanner.nextLine());
         ftpData.setPassword("Fgo7kux1EfbF");
+        scanner.close();
     }
 
     public static void main(String[] args) throws Exception {
         DatabaseClientRepository dRepository = new DatabaseClient();
-        dRepository.addStudent("Boris");
+        dRepository.deleteStudent(1);
     }
 }

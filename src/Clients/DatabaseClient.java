@@ -1,11 +1,9 @@
 package clients;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.InputStream;
+import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,12 +17,25 @@ import repository.DatabaseClientRepository;
 
 public class DatabaseClient implements DatabaseClientRepository{
 
+    private static final String DATABASE_NAME = "database.json";
+    private static final String ARRAY_NAME = "students";
+
+    private void writeFile(JsonObject jsonObject){
+        try{
+        OutputStream outputStream = new FileOutputStream(DATABASE_NAME, false);
+        outputStream.write(jsonObject.toString(WriterConfig.PRETTY_PRINT).getBytes());
+        outputStream.close();
+        }
+        catch(Exception ex){
+            ex.printStackTrace();
+        }
+    }
+
     @Override
     public void findAllStudents() {
         try {
-            JsonObject jObject = Json.parse(new FileReader("database.json")).asObject();
             List<String> names = new ArrayList<>();
-            JsonArray jArray = jObject.get("students").asArray();
+            JsonArray jArray = Json.parse(new FileReader(DATABASE_NAME)).asObject().get(ARRAY_NAME).asArray();
             for (JsonValue item: jArray)
                 names.add(item.asObject().getString("name","Unknown item"));
             Collections.sort(names);
@@ -36,12 +47,22 @@ public class DatabaseClient implements DatabaseClientRepository{
         }
     }
 
+    private void addStudentInNullArray(String name){
+        try {
+            JsonArray jArray = Json.parse(new FileReader(DATABASE_NAME)).asObject().get(ARRAY_NAME).asArray();
+            jArray.add(Json.object().add("id",1).add("name", name));
+            JsonObject jsonObject = Json.object().add(ARRAY_NAME, jArray);
+            writeFile(jsonObject);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
     @Override
     public void findStudentById(int id) {
         try {
-            JsonArray jArray = Json.parse(new FileReader("database.json")).asObject().get("students").asArray();
+            JsonArray jArray = Json.parse(new FileReader(DATABASE_NAME)).asObject().get(ARRAY_NAME).asArray();
             boolean log = false;
             for (JsonValue item: jArray){
                 if (id == item.asObject().getInt("id",123)){
@@ -60,24 +81,45 @@ public class DatabaseClient implements DatabaseClientRepository{
     @Override
     public void addStudent(String name) {
         try {
-            JsonArray jArray = Json.parse(new FileReader("database.json")).asObject().get("students").asArray();
-            
-            JsonObject jObject = Json.object().add("id", 5).add("name", name);
-            jArray.add(jObject);
-            JsonObject jsonObject = Json.object().add("students", jArray);
-            OutputStream outputStream = new FileOutputStream("database.json", false);
-            outputStream.write(jsonObject.toString(WriterConfig.PRETTY_PRINT).getBytes());
-            outputStream.close();
+            JsonArray jArray = Json.parse(new FileReader(DATABASE_NAME)).asObject().get(ARRAY_NAME).asArray();
+            List<Integer> idsInArrays = new ArrayList<>();
+            for (JsonValue item : jArray){
+                idsInArrays.add(item.asObject().getInt("id",123));
+            }
+            jArray.add(Json.object().add("id", idsInArrays.get(idsInArrays.size()- 1) + 1).add("name", name));
+            JsonObject jsonObject = Json.object().add(ARRAY_NAME, jArray);
+            writeFile(jsonObject);
         }
-        catch(Exception exception){
-            exception.printStackTrace();
+        catch(ArrayIndexOutOfBoundsException exception){
+            addStudentInNullArray(name);
+        } 
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void deleteStudent(int id) {
-        
-        
+        try {
+            JsonArray jArray = Json.parse(new FileReader(DATABASE_NAME)).asObject().get(ARRAY_NAME).asArray();
+            boolean log = false;
+            List<Integer> listIdInArray = new ArrayList<>();
+            for (JsonValue item: jArray){
+                int idInArray = item.asObject().getInt("id",123);
+                listIdInArray.add(idInArray);
+                if (id == item.asObject().getInt("id",123)){
+                    log = true;
+                    jArray.remove(listIdInArray.indexOf(idInArray));
+                    break;
+                }
+            }
+            if (!log)
+                System.out.println("Студент с данным id не найден.");
+            JsonObject jsonObject = Json.object().add(ARRAY_NAME, jArray);
+            writeFile(jsonObject);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
 }
