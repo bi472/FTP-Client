@@ -1,15 +1,9 @@
-package App;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.*;
+package app;
 import java.util.Scanner;
 
-import Clients.FtpClient;
-
-import java.io.*;
-import json.JsonObject;
+import clients.DatabaseClient;
 import models.FTPData;
-import repository.FtpClientRepository;
+import repository.DatabaseClientRepository;
 
 public class App {
 
@@ -32,6 +26,7 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        inputFtpData();
+        DatabaseClientRepository dRepository = new DatabaseClient();
+        dRepository.addStudent("Boris");
     }
 }
