@@ -1,10 +1,6 @@
 {
   "students": [
     {
-      "id": 1,
-      "name": "Pavel"
-    },
-    {
       "id": 2,
       "name": "Aidar"
     }

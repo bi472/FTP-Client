@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+import org.testng.annotations.Test;
+
 import clients.DatabaseClient;
 import models.FTPData;
 import repository.DatabaseClientRepository;
@@ -95,19 +97,19 @@ public class App {
         public void login() throws IOException {
             String response;
             do {
-                System.out.println(response = this.client.getServerLine());
+                response = this.client.getServerLine();
             } while (!response.startsWith("200"));
             boolean successfulConnection;
             do {
                 // Get input from user
-                System.out.println("Enter your user:");
+                System.out.println("Введите имя пользователя:");
                 // this.username = this.keyboard.readLine();
                 this.username = "u272793";
                 this.client.sendCommandToServer(FTPCommands.USER, this.username);
                 response = this.client.serverReceiver.readLine();
                 System.out.println(response);
                 // Send the password
-                System.out.println("Enter your password:");
+                System.out.println("Введите пароль:");
                 // String password = this.keyboard.readLine();
                 String password = "Fgo7kux1EfbF";
                 this.client.sendCommandToServer(FTPCommands.PASS, password);
@@ -116,7 +118,6 @@ public class App {
 
                 successfulConnection = response.startsWith("530");
             } while (successfulConnection);
-
         }
 
         private SocketClient getPassiveConnection() throws IOException {
@@ -271,6 +272,8 @@ public class App {
                         dRepository.deleteStudent(scanner.nextInt());
                         protocolClient.put(DATABASE_NAME);
                         pressEnterToContinue();
+                        break;
+                    case 5:
                         break;
                     default:
                         System.out.print("Введите цифру команды (1-5).");
