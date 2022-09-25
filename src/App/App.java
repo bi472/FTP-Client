@@ -9,10 +9,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.InputMismatchException;
 import java.util.Scanner;
-
-import org.testng.annotations.Test;
 
 import clients.DatabaseClient;
 import models.FTPData;
@@ -22,6 +19,23 @@ public class App {
 
     private static FTPData ftpData = new FTPData();
     private static final String DATABASE_NAME = "database.json";
+
+    public static boolean validateHostname(String hostname) throws IOException{
+        try
+        {
+            Socket socket = new Socket(hostname, 21);
+            socket.close();
+        }
+        catch (java.net.UnknownHostException exception){
+            System.out.println("Введите IP-адрес или имя хостинга.");
+            return false;
+        }
+        catch (java.net.ConnectException exception){
+            System.out.println("Превышено время ожидания ответа хоста.");
+            return false;
+        }
+        return true;
+    }
 
     private enum FTPCommands {
         OPTS,
@@ -103,15 +117,13 @@ public class App {
             do {
                 // Get input from user
                 System.out.println("Введите имя пользователя:");
-                // this.username = this.keyboard.readLine();
-                this.username = "u272793";
+                this.username = this.keyboard.readLine();
                 this.client.sendCommandToServer(FTPCommands.USER, this.username);
                 response = this.client.serverReceiver.readLine();
                 System.out.println(response);
                 // Send the password
                 System.out.println("Введите пароль:");
-                // String password = this.keyboard.readLine();
-                String password = "Fgo7kux1EfbF";
+                String password = this.keyboard.readLine();
                 this.client.sendCommandToServer(FTPCommands.PASS, password);
                 response = this.client.getServerLine();
                 System.out.println(response);
@@ -291,8 +303,12 @@ public class App {
 
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
+        String ftpURL;
+        do{
         System.out.println("Enter myftp server-name:");
-        String ftpURL = scanner.nextLine();
+        ftpURL = scanner.nextLine();
+        }
+        while (!validateHostname(ftpURL));
         ftpData.setFtpURL(ftpURL);
         ftpData.setPort(21);
 
