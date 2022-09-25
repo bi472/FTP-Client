@@ -20,17 +20,14 @@ public class App {
     private static FTPData ftpData = new FTPData();
     private static final String DATABASE_NAME = "database.json";
 
-    public static boolean validateHostname(String hostname) throws IOException{
-        try
-        {
+    public static boolean validateHostname(String hostname) throws IOException {
+        try {
             Socket socket = new Socket(hostname, 21);
             socket.close();
-        }
-        catch (java.net.UnknownHostException exception){
+        } catch (java.net.UnknownHostException exception) {
             System.out.println("Введите IP-адрес или имя хостинга.");
             return false;
-        }
-        catch (java.net.ConnectException exception){
+        } catch (java.net.ConnectException exception) {
             System.out.println("Превышено время ожидания ответа хоста.");
             return false;
         }
@@ -135,9 +132,9 @@ public class App {
         private SocketClient getPassiveConnection() throws IOException {
             this.client.sendCommandToServer(FTPCommands.PASV);
             String response;
-            do{            
+            do {
                 response = this.client.getServerLine();
-            }while(!response.startsWith("227"));
+            } while (!response.startsWith("227"));
 
             // Get the hostname and port from the server
 
@@ -154,6 +151,14 @@ public class App {
             return new SocketClient(passiveHostname, passivePort);
         }
 
+        public boolean fileExists(String arguments) throws IOException {
+            this.client.sendCommandToServer(FTPCommands.RETR, arguments);
+            String response = this.client.getServerLine();
+            if (response.startsWith("550"))
+                return false;
+            return true;
+        }
+
         public void get(String arguments) throws IOException {
             try {
                 SocketClient dataSocket = getPassiveConnection();
@@ -161,7 +166,6 @@ public class App {
                 // send request for the file
                 this.client.sendCommandToServer(FTPCommands.RETR, arguments);
                 this.client.getServerLine();
-
                 // open file stream
                 FileWriter writer = new FileWriter(arguments, false);
 
@@ -179,7 +183,6 @@ public class App {
                     }
                 }
                 this.client.getServerLine();
-
                 // close sockets
                 dataSocket.close();
                 writer.close();
@@ -250,9 +253,16 @@ public class App {
     }
 
     private static void processCommands(FTPProtocolClient protocolClient,
-            DatabaseClientRepository dRepository) {
+            DatabaseClientRepository dRepository) throws IOException {
         Scanner scanner = new Scanner(System.in);
         Scanner scanner2 = new Scanner(System.in);
+        if (!protocolClient.fileExists(DATABASE_NAME)) {
+            System.out.println("Файла " + DATABASE_NAME
+                    + " не существует.\nФайл со структурой будет создан автоматически и передан на сервер.");
+            dRepository.createFile();
+            protocolClient.put(DATABASE_NAME);
+            pressEnterToContinue();
+        }
         int option = 1;
         while (option != 5) {
             showCommands();
@@ -274,6 +284,7 @@ public class App {
                     case 3:
                         protocolClient.get(DATABASE_NAME);
                         System.out.print("Введите имя студента: ");
+                        
                         dRepository.addStudent(scanner2.nextLine());
                         protocolClient.put(DATABASE_NAME);
                         pressEnterToContinue();
@@ -304,11 +315,10 @@ public class App {
     public static void main(String[] args) throws Exception {
         Scanner scanner = new Scanner(System.in);
         String ftpURL;
-        do{
-        System.out.println("Enter myftp server-name:");
-        ftpURL = scanner.nextLine();
-        }
-        while (!validateHostname(ftpURL));
+        do {
+            System.out.println("Введите адрес сервера:");
+            ftpURL = scanner.nextLine();
+        } while (!validateHostname(ftpURL));
         ftpData.setFtpURL(ftpURL);
         ftpData.setPort(21);
 

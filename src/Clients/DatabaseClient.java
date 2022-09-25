@@ -144,4 +144,11 @@ public class DatabaseClient implements DatabaseClientRepository {
         }
     }
 
+    @Override
+    public void createFile() {
+        JsonArray jsonArray = Json.array();
+        JsonObject jsonObject = Json.object().add("students", jsonArray);
+        writeFile(jsonObject);
+    }
+
 }

@@ -2,7 +2,7 @@ package models;
 
 public class FTPData {
     private String ftpURL; 
-    private int port = 22;
+    private int port;
     
     public int getPort() {
         return port;
